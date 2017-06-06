@@ -17,3 +17,7 @@ What I am sharing?
 Not sharing?
 1) How to load this CSV data into influxDB
 2) How to create dashboards using grafana
+
+awrparser-list.pl --> With this script you can fetch Foreground wait events, Foreground wait event class details & Instance activity stats details. You can uncomment the respective file handle column names based on your requirement.
+
+awrparser-sqllist.pl --> With this script you can extract SQL ordered by Elapsed Time, SQL ordered by CPU Time & SQL ordered by User I/O Wait Time details. You can get the remaining section of details as well with small modification on code.
