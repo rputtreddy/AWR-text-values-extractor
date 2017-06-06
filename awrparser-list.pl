@@ -1,8 +1,8 @@
 use strict;
 use File::Glob;
 
-my @files = <"D:\\Projects\\Kotal Life Insurance\\30DaysLogs\\Fourdx DB\\AWR\\awr for FourDX 25th May\\*.html">;
-my $destFileName = "D:\\Projects\\Kotal Life Insurance\\30DaysLogs\\Fourdx DB\\AWR\\awr for FourDX 25th May";
+my @files = <"D:\\Projects\\Kotal Life Insurance\\30DaysLogs\\Fourdx DB\\AWR\\awr for FourDX 22nd May\\*.html">;
+my $destFileName = "D:\\Projects\\Kotal Life Insurance\\30DaysLogs\\Fourdx DB\\AWR\\awr for FourDX 22nd May";
 
 my $startTimestamp;
 my $endTimestamp;
@@ -12,22 +12,18 @@ my @tempInstanceActivityStats;
 my @tempStats;
 my @instanceActivityStats;
 my $flag;
-my $startSQLTopElapsedTime = "<table border=\"1\" summary=\"This table displays top SQL by elapsed time\"";
-my $endSQLTopElapsedTime ="<\/table><p \/>";
-my $startSQLTopCPUTime = "<table border=\"1\" summary=\"This table displays top SQL by CPU time\"";
-my $startSQLUserIOTime = "<table border=\"1\" summary=\"This table displays top SQL by user I/O time\"";
-#my $startSQLPhysicalReads = "<table border=\"1\" summary=\"This table displays top SQL by physical reads\""; 
-
+my $startInstantActivity = "<table border=\"1\" summary=\"This table displays Instance activity statistics";
+my $endInstantActivity = "<\/table><p \/>";
+my $startForegroundWaitClassStats = "<table border=\"1\" summary=\"This table displays foreground wait class statistics\">";
+my $endForegroundWaitClassStats="<\/table><p \/>";
+my $startForegroundWaitEventStats = "<table border=\"1\" summary=\"This table displays Foreground Wait Events and their wait statistics\">";
+my $endForegroundWaitEventStats = "<\/table><p \/>";
 
 sub readLines(){
 my $fh = shift;
 $flag = 0;
-#To fetch Instance activity statistics #
+# To fetch Instance activity statistics #
 while(my $line = <$fh>){
-	next if $line =~ /^<td class='awrc'>/;
-	next if $line =~ /^<td class='awrnc'>/;
-	next if $line =~ /^<\/td>/;
-	next if $line =~ /^[A-Za-z0-9._]+/;
          if($line =~ /End Snap:/){
               $line =~ s/<td scope="row" class='awrc'>/^/g;
               $line =~ s/<td align="right" class='awrc'>/^/g;
@@ -51,9 +47,7 @@ while(my $line = <$fh>){
               $startTimestamp = $temp[2];	          	
           }  
               
-       if ($line =~ /$startSQLTopElapsedTime/){
-       		 $line =~ s/^ *$//g;
-       		 $line =~ s/^\s+\*$//g;
+       if ($line =~ /$startForegroundWaitEventStats/){
              $line = join('^',$startTimestamp,$endTimestamp,$beginSnapId,$endSnapId,$line);
              push(@tempInstanceActivityStats,$line);
              $flag = 1;
@@ -62,7 +56,7 @@ while(my $line = <$fh>){
              $line = join('^',$startTimestamp,$endTimestamp,$beginSnapId,$endSnapId,$line);
              push(@tempInstanceActivityStats,$line);
              $flag = 1;
-             last if($line =~ /$endSQLTopElapsedTime/);
+             last if($line =~ /$endForegroundWaitEventStats/);
         }
        }
 return @tempInstanceActivityStats;
@@ -72,20 +66,16 @@ sub removeUnwantedLines(){
             my @strLines = @_;
             my @tempStr;
             foreach(@strLines){       
-            next if $_ =~ /$startSQLTopElapsedTime/;
-            next if $_ =~ /$endSQLTopElapsedTime/;
-            			$_ =~ s/<tr><td align="right" class='awrc'>//g;
-            			$_ =~ s/<tr><td align="right" class='awrnc'>//g;
-            			$_ =~ s/<td align="right" class='awrc'>/^/g;
-                        $_ =~ s/<td align="right" class='awrnc'>/^/g;
+            next if $_ =~ /$startForegroundWaitEventStats/;
+            next if $_ =~ /$endForegroundWaitEventStats/;
                         $_ =~ s/<td scope="row" class='awrc'>/^/g;
                         $_ =~ s/<td scope="row" class='awrnc'>/^/g;
-                        $_ =~ s/<a class="awr" href="#[a-z0-9]+">//g;
-						$_ =~ s/<a class="awr" href="#[a-z0-9]+">//g;
-						$_ =~ s/<\/a><\/td>//g;	        
+                        $_ =~ s/<td align="right" class='awrc'>/^/g;
+                        $_ =~ s/<td align="right" class='awrnc'>/^/g;
+                        $_ =~ s/<td class='awrc'>/^/g;
+                        $_ =~ s/<td class='awrnc'>/^/g;
                         $_ =~ s/<tr>\^//g;
                         $_ =~ s/<td>//g;
-                        $_ =~ s/<\/a>//g;
                         $_ =~ s/,//g;
                         $_ =~ s/;//g;
                         $_ =~ s/<\/td>//g;
@@ -103,15 +93,12 @@ sub nullifyArrays(){
 
 sub writeToFile(){
        my @temp = @_;
-       #open my $fh, ">$destFileName\\SQLTopElapsedTime.csv" || die "$destFileName\\SQLTopElapsedTime.csv unable to write into file";
-       #open my $fh, ">$destFileName\\SQLCPUTime.csv" || die "$destFileName\\SQLCPUTime.csv unable to write into file";
-       #open my $fh, ">$destFileName\\SQLUserIOWaitTime.csv" || die "$destFileName\\SQLUserIOWaitTime.csv unable to write into file";
-       open my $fh, ">$destFileName\\SQLPhysicalReads.csv" || die "$destFileName\\SQLPhysicalReads.csv unable to write into file";
-       #print $fh "Timestamp^EndTimestamp^BeginSnap^EndSnap^TotalElapsedTimeSec^Executions^ElapsedTimePerExecutionSec^PercentageTotal^PercentageCPU^PercentageIO^SQLID\n";
-       #print $fh "Timestamp^EndTimestamp^BeginSnap^EndSnap^TotalCPUTimeSec^Executions^CPUTimePerExecutionSec^PercentageTotal^TotalElapsedTimeSec^PercentageCPU^PercentageIO^SQLID\n";
-       #print $fh "Timestamp^EndTimestamp^BeginSnap^EndSnap^TotalUserIOTimeSec^Executions^UIOTimePerExecutionSec^PercentageTotal^TotalElapsedTimeSec^PercentageCPU^PercentageIO^SQLID\n";
-       print $fh "Timestamp^EndTimestamp^BeginSnap^EndSnap^TotalUserIOTimeSec^Executions^UIOTimePerExecutionSec^PercentageTotal^TotalElapsedTimeSec^PercentageCPU^PercentageIO^SQLID\n";
-       #print $fh ""
+       open my $fh, ">$destFileName\\ForegroundWaitEvents.csv" || die "$destFileName\\ForegroundWaitEvents.csv unable to write into file";
+       #open my $fh, ">$destFileName\\ForegroundWaitClass.csv" || die "$destFileName\\ForegroundWaitClass.csv unable to write into file";
+       #open my $fh, ">$destFileName\\InstanceActivityStats.csv" || die "$destFileName\\InstanceActivityStats.csv unable to write into file";
+       #print $fh "Timestamp,EndTimestamp,BeginSnap,EndSnap,Static Name, Total, PerSecond, PerTransaction\n";
+       #print $fh "Timestamp,EndTimestamp,BeginSnap,EndSnap,WaitClass,Waits,%Time-outs,TotalWaitTime,AvgWait(ms),%DBTime\n";
+       print $fh "Timestamp,EndTimestamp,BeginSnap,EndSnap,Event,Waits,%Time-outs,TotalWaitTimeInSec,AvgWaitMsec,WaitsPerTxn,%DBTime\n";
        print $fh @temp;
        close($fh);
 }
@@ -119,7 +106,7 @@ sub writeToFile(){
 my $start_time = time();
 
 foreach my $fh(@files){
-#       print "Reading file $fh \n";
+        #print "Reading file $fh \n";
         open my $FILE, "<$fh" || die "$fh not found";
         @tempStats = &readLines($FILE);
         close($FILE);
@@ -127,7 +114,7 @@ foreach my $fh(@files){
         &writeToFile(@instanceActivityStats);
 		&nullifyArrays(@tempStats);
 		&nullifyArrays(@tempInstanceActivityStats);
-#      	print "Completed reading file $fh \n";
+#      print "Completed reading file $fh \n";
 }
 
 my $end_time = time();
