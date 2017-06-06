@@ -1,8 +1,8 @@
 use strict;
 use File::Glob;
 
-my @files = <"D:\\Projects\\Kotal Life Insurance\\30DaysLogs\\Fourdx DB\\AWR\\awr for FourDX 22nd May\\*.html">;
-my $destFileName = "D:\\Projects\\Kotal Life Insurance\\30DaysLogs\\Fourdx DB\\AWR\\awr for FourDX 22nd May";
+my @files = <"filepath\\*.html">;
+my $destFileName = "destinationfilepath\\output.csv";
 
 my $startTimestamp;
 my $endTimestamp;
